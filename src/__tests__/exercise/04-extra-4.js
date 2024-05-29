@@ -5,6 +5,7 @@ import * as React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Login from "../../components/login";
+import faker from "faker";
 import { build, fake } from "@jackfranklin/test-data-bot";
 
 const formBuilder = build({

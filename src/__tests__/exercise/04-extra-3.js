@@ -5,21 +5,21 @@ import * as React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Login from "../../components/login";
-import { build, fake } from "@jackfranklin/test-data-bot";
+import faker from "faker";
 
-const formBuilder = build({
-  fields: {
-    username: fake((f) => f.internet.userName()),
-    password: fake((f) => f.internet.password()),
-  },
-});
+function buildLoginForm(overrides) {
+  const username = faker.internet.userName();
+  const password = faker.internet.password();
+
+  return { username, password, ...overrides };
+}
 
 test("submitting the form calls onSubmit with username and password", async () => {
   const handleSubmit = jest.fn();
 
   render(<Login onSubmit={handleSubmit} />);
 
-  const { username, password } = formBuilder();
+  const { username, password } = buildLoginForm();
 
   const usernameInput = screen.getByLabelText(/username/i);
   const passwordInput = screen.getByLabelText(/password/i);

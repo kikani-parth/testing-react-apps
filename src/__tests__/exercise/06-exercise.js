@@ -3,30 +3,47 @@
 
 import * as React from "react";
 import { render, screen, act } from "@testing-library/react";
-import { useCurrentPosition } from "react-use-geolocation";
 import Location from "../../examples/location";
 
-jest.mock("react-use-geolocation");
+beforeAll(() => {
+  window.navigator.geolocation = {
+    getCurrentPosition: jest.fn(),
+  };
+});
+
+// allows you to create a promise that you can resolve/reject on demand.
+function deferred() {
+  let resolve, reject;
+  const promise = new Promise((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
 
 test("displays the users current location", async () => {
   const fakePosition = { coords: { latitude: 25, longitude: 30 } };
 
-  let setReturnValue;
-  function useMockCurrentPosition() {
-    const state = React.useState([]);
-    setReturnValue = state[1];
-    return state[0];
-  }
+  // create a deferred promise
+  const { promise, resolve, reject } = deferred();
 
-  useCurrentPosition.mockImplementation(useMockCurrentPosition);
+  window.navigator.geolocation.getCurrentPosition.mockImplementation(
+    (callback) => {
+      promise.then(() => callback(fakePosition));
+    }
+  );
 
   render(<Location />);
 
   // verify the loading spinner is showing up
   expect(screen.getByLabelText(/loading/i)).toBeInTheDocument();
 
-  act(() => {
-    setReturnValue([fakePosition]);
+  await act(async () => {
+    // resolve the deferred promise
+    resolve();
+
+    // wait for the promise to resolve
+    await promise;
   });
 
   // verify the loading spinner is no longer in the document
